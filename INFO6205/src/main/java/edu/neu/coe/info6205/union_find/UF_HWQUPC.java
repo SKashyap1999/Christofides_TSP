@@ -34,6 +34,7 @@ public class UF_HWQUPC implements UF {
      */
     public UF_HWQUPC(int n, boolean pathCompression) {
         count = n;
+        connections=0;
         parent = new int[n];
         height = new int[n];
         for (int i = 0; i < n; i++) {
@@ -80,10 +81,16 @@ public class UF_HWQUPC implements UF {
      */
     public int find(int p) {
         validate(p);
-        int root = p;
-        // FIXME
-        // END 
-        return root;
+        if (pathCompression) {
+            doPathCompression(p);
+        return parent[p];
+        }
+
+        else {
+            while (p != parent[p]) p = parent[p];
+            return p;
+
+        }
     }
 
     /**
@@ -113,6 +120,7 @@ public class UF_HWQUPC implements UF {
         // CONSIDER can we avoid doing find again?
         mergeComponents(find(p), find(q));
         count--;
+        connections++;
     }
 
     @Override
@@ -162,22 +170,55 @@ public class UF_HWQUPC implements UF {
     private int getParent(int i) {
         return parent[i];
     }
+    public void show_array(){
+        for(int i:this.parent){
+            System.out.print(i+" ");
+        }
+        System.out.println("\n");
+    }
 
-    private final int[] parent;   // parent[i] = parent of i
+    private int[] parent;   // parent[i] = parent of i
     private final int[] height;   // height[i] = height of subtree rooted at i
     private int count;  // number of components
     private boolean pathCompression;
+    private long connections;
 
     private void mergeComponents(int i, int j) {
-        // FIXME make shorter root point to taller one
-        // END 
+
+        if(height[i]>=height[j]){
+            updateParent(j,i);
+            updateHeight(i,j);
+        }
+        else{
+            updateParent(i,j);
+            updateHeight(j,i);
+        }
     }
+    public long getConnections() {return connections;}
+
 
     /**
      * This implements the single-pass path-halving mechanism of path compression
      */
     private void doPathCompression(int i) {
-        // FIXME update parent to value of grandparent
-        // END 
+        while (i != parent[i]) {
+            parent[i] = parent[parent[i]];
+            i = parent[i];
+        }
+        }
+
+
+    /**
+     * This method is used to confirm the presence of a fully connected component.
+     * 
+     */
+    public boolean isConnected(){
+        int j=parent[0];
+        for(int i:this.parent){
+            if(j!=find(i))
+                return false;
+        }
+        return true;
+   }
     }
-}
+
